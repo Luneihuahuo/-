@@ -1,0 +1,35 @@
+use sha2::{Digest, Sha256};
+use std::time::Instant;
+
+fn proof_of_work(nickname: &str, zeros: usize) {
+    let prefix = "0".repeat(zeros);
+    let mut nonce: u64 = 0;
+    let start_time = Instant::now();
+
+    loop {
+        let input = format!("{}{}", nickname, nonce);
+        let hash = Sha256::digest(input.as_bytes());
+        let hash_hex = format!("{:x}", hash);
+
+        if hash_hex.starts_with(&prefix) {
+            let elapsed = start_time.elapsed();
+            println!("满足前缀 {} 个 0 的哈希值：", zeros);
+            println!("用时：{:.2?}", elapsed);
+            println!("输入内容：{}", input);
+            println!("哈希值：{}", hash_hex);
+            break;
+        }
+
+        nonce += 1;
+    }
+}
+
+fn main() {
+    let nickname = "LiMingHui";
+
+    // 先找前缀为4个0的哈希
+    proof_of_work(nickname, 4);
+
+    // 再找前缀为5个0的哈希
+    proof_of_work(nickname, 5);
+}
