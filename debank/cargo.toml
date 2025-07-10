@@ -1,0 +1,9 @@
+[package]
+name = "bank_dapp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ethers = { version = "2", features = ["abigen", "tokio"] }
+tokio = { version = "1", features = ["full"] }
+dotenv = "0.15"
