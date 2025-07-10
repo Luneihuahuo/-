@@ -1,0 +1,83 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Bank {
+    address public owner;
+    mapping(address => uint256) public balances;
+    address[3] public topUsers;
+    uint256[3] public topAmounts;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // 允许直接转账到合约
+    receive() external payable {
+        deposit();
+    }
+
+    // 也可以通过调用 deposit() 存款
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than 0");
+        balances[msg.sender] += msg.value;
+        _updateTopUsers(msg.sender);
+    }
+
+    // 仅管理员可提取全部资金
+    function withdraw() external onlyOwner {
+        uint256 amount = address(this).balance;
+        require(amount > 0, "No funds to withdraw");
+        payable(owner).transfer(amount);
+    }
+
+    // 内部函数：更新前3名
+    function _updateTopUsers(address user) internal {
+        uint256 userBalance = balances[user];
+
+        // 检查是否已在前3名
+        for (uint i = 0; i < 3; i++) {
+            if (topUsers[i] == user) {
+                topAmounts[i] = userBalance;
+                _sortTopUsers();
+                return;
+            }
+        }
+
+        // 检查是否能进入前3名
+        for (uint i = 0; i < 3; i++) {
+            if (userBalance > topAmounts[i]) {
+                // 插入新用户
+                for (uint j = 2; j > i; j--) {
+                    topUsers[j] = topUsers[j-1];
+                    topAmounts[j] = topAmounts[j-1];
+                }
+                topUsers[i] = user;
+                topAmounts[i] = userBalance;
+                break;
+            }
+        }
+    }
+
+    // 内部函数：按金额降序排序
+    function _sortTopUsers() internal {
+        for (uint i = 0; i < 2; i++) {
+            for (uint j = i + 1; j < 3; j++) {
+                if (topAmounts[j] > topAmounts[i]) {
+                    // 交换
+                    (topAmounts[i], topAmounts[j]) = (topAmounts[j], topAmounts[i]);
+                    (topUsers[i], topUsers[j]) = (topUsers[j], topUsers[i]);
+                }
+            }
+        }
+    }
+
+    // 查询前3名用户
+    function getTopUsers() external view returns (address[3] memory, uint256[3] memory) {
+        return (topUsers, topAmounts);
+    }
+}
