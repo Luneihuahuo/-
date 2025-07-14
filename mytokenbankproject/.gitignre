@@ -1,0 +1,39 @@
+# Node.js 依赖（如使用 Hardhat 或 Truffle）
+node_modules/
+package-lock.json
+yarn.lock
+
+# 编译生成目录
+artifacts/
+cache/
+typechain/
+
+# Remix 相关自动生成文件
+browser/
+*.db
+
+# 编译输出
+*.abi
+*.bin
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 环境变量文件
+.env
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# VS Code 设置（如果不共享工作区配置）
+.vscode/
+
+# 覆盖文件
+coverage/
+coverage.json
+
+# Hardhat 配置输出（如果有）
+hardhat.config.ts
