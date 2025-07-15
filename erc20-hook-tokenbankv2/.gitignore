@@ -1,0 +1,26 @@
+# Node.js dependencies
+node_modules/
+
+# Hardhat/Foundry build artifacts
+artifacts/
+cache/
+out/
+build/
+
+# dotenv environment file
+.env
+
+# OS-specific junk files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.sw?
+
+# Remix related
+*.db
+
+# Logs
+*.log
