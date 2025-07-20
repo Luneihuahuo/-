@@ -1,0 +1,7 @@
+[PASS] testDepositUpdatesBalance()
+[PASS] testTopDepositorsWith1User()
+[PASS] testTopDepositorsWith4Users()
+[PASS] testTopDepositorsWithRepeatedUser()
+[PASS] testOnlyOwnerCanWithdraw()
+[PASS] testOwnerWithdraw()
+Test result: ok. 6 passed; 0 failed; 0 skipped
