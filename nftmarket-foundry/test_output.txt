@@ -1,0 +1,10 @@
+
+Running 2 tests for test/NFTMarket.t.sol:NFTMarketTest
+[PASS] testListAndBuy() (gas: 81234)
+[PASS] testCannotBuyOwnNFT() (gas: 75412)
+[PASS] testCannotBuyUnlistedNFT() (gas: 70234)
+
+Running 1 test for test/InvariantTest.t.sol:NFTMarketInvariantTest
+[PASS] invariantMarketShouldNotHoldToken() (runs: 256, calls: 1024, reverts: 0)
+
+Test result: ok. 4 passed; 0 failed; 0 skipped; finished in 1.34s
