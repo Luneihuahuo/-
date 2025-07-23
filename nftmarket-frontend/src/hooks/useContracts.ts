@@ -1,0 +1,1 @@
+// Hook to load contracts
