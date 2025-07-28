@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC20 转账记录查询</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .login-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .user-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .transfers-section {
+            margin-top: 30px;
+        }
+
+        .transfers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .transfer-card {
+            background: #fff;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .transfer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .transfer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .transfer-type {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .transfer-type.sent {
+            background: #fee;
+            color: #c53030;
+        }
+
+        .transfer-type.received {
+            background: #e8f5e8;
+            color: #2d7738;
+        }
+
+        .transfer-amount {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .transfer-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            word-break: break-all;
+        }
+
+        .hash-link {
+            color: #4facfe;
+            text-decoration: none;
+        }
+
+        .hash-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c53030;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2d7738;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .transfer-details {
+                grid-template-columns: 1fr;
+            }
+
+            .transfers-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 ERC20 转账记录查询</h1>
+            <p>查询和展示您的代币转账历史记录</p>
+        </div>
+
+        <div class="content">
+            <!-- 登录区域 -->
+            <div id="loginSection" class="login-section">
+                <h3>👤 用户登录</h3>
+                <div class="form-group">
+                    <label for="userAddress">请输入您的钱包地址:</label>
+                    <input type="text" id="userAddress" placeholder="0x..." />
+                </div>
+                <button class="btn" onclick="login()">登录查询</button>
+                <button class="btn btn-secondary" onclick="showAllTransfers()">查看所有转账</button>
+            </div>
+
+            <!-- 用户信息区域 -->
+            <div id="userInfo" class="user-info" style="display: none;">
+                <strong>当前用户:</strong> <span id="currentUser"></span>
+                <button class="btn" onclick="logout()" style="float: right;">退出登录</button>
+            </div>
+
+            <!-- 转账记录区域 -->
+            <div id="transfersSection" class="transfers-section" style="display: none;">
+                <div class="transfers-header">
+                    <h3 id="transfersTitle">📊 转账记录</h3>
+                    <div>
+                        <span id="transfersCount">0</span> 条记录
+                    </div>
+                </div>
+                <div id="transfersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserAddress = null;
+        const API_BASE = '/api';
+
+        // 登录函数
+        async function login() {
+            const address = document.getElementById('userAddress').value.trim();
+            
+            if (!address) {
+                showError('请输入有效的钱包地址');
+                return;
+            }
+
+            if (!isValidAddress(address)) {
+                showError('请输入有效的以太坊地址格式');
+                return;
+            }
+
+            currentUserAddress = address;
+            
+            // 显示用户信息
+            document.getElementById('currentUser').textContent = formatAddress(address);
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            
+            // 加载转账记录
+            await loadTransfers(address);
+        }
+
+        // 退出登录
+        function logout() {
+            currentUserAddress = null;
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('transfersSection').style.display = 'none';
+            document.getElementById('userAddress').value = '';
+        }
+
+        // 显示所有转账记录
+        async function showAllTransfers() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            await loadAllTransfers();
+        }
+
+        // 加载指定地址的转账记录
+        async function loadTransfers(address) {
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/transfers/${address}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayTransfers(data.transfers, `${formatAddress(address)} 的转账记录`);
+                } else {
+                    showError(data.error || '获取转账记录失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('网络请求失败，请检查后端服务是否正常运行');
+            }
+        }
+
+        // 加载所有转账记录
+        async function loadAllTransfers() {
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/transfers`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayTransfers(data.transfers, '所有转账记录');
+                } else {
+                    showError(data.error || '获取转账记录失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('网络请求失败，请检查后端服务是否正常运行');
+            }
+        }
+
+        // 显示转账记录
+        function displayTransfers(transfers, title) {
+            const transfersSection = document.getElementById('transfersSection');
+            const transfersTitle = document.getElementById('transfersTitle');
+            const transfersCount = document.getElementById('transfersCount');
+            const transfersList = document.getElementById('transfersList');
+            
+            transfersTitle.textContent = title;
+            transfersCount.textContent = transfers.length;
+            transfersSection.style.display = 'block';
+            
+            if (transfers.length === 0) {
+                transfersList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 暂无转账记录</h3>
+                        <p>该地址还没有任何转账记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            transfersList.innerHTML = transfers.map(transfer => {
+                const amount = formatTokenAmount(transfer.value);
+                const date = new Date(transfer.timestamp).toLocaleString('zh-CN');
+                const type = transfer.type || 'unknown';
+                
+                return `
+                    <div class="transfer-card">
+                        <div class="transfer-header">
+                            <div class="transfer-type ${type}">${type === 'sent' ? '发送' : type === 'received' ? '接收' : '转账'}</div>
+                            <div class="transfer-amount">${amount} MTK</div>
+                        </div>
+                        <div class="transfer-details">
+                            <div class="detail-item">
+                                <div class="detail-label">发送方</div>
+                                <div class="detail-value">${formatAddress(transfer.from)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">接收方</div>
+                                <div class="detail-value">${formatAddress(transfer.to)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">交易哈希</div>
+                                <div class="detail-value">
+                                    <a href="#" class="hash-link" title="${transfer.transactionHash}">
+                                        ${formatAddress(transfer.transactionHash)}
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">时间</div>
+                                <div class="detail-value">${date}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            const transfersSection = document.getElementById('transfersSection');
+            const transfersList = document.getElementById('transfersList');
+            
+            transfersSection.style.display = 'block';
+            transfersList.innerHTML = '<div class="loading">🔄 正在加载转账记录...</div>';
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const transfersSection = document.getElementById('transfersSection');
+            const transfersList = document.getElementById('transfersList');
+            
+            transfersSection.style.display = 'block';
+            transfersList.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+
+        // 工具函数
+        function isValidAddress(address) {
+            return /^0x[a-fA-F0-9]{40}$/.test(address);
+        }
+
+        function formatAddress(address) {
+            if (!address) return '';
+            return `${address.slice(0, 6)}...${address.slice(-4)}`;
+        }
+
+        function formatTokenAmount(value) {
+            // 将wei转换为ether格式显示
+            const ether = parseFloat(value) / Math.pow(10, 18);
+            return ether.toLocaleString('zh-CN', { maximumFractionDigits: 6 });
+        }
+
+        // 页面加载完成后检查服务器状态
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('服务器状态正常');
+                    if (data.indexer === 'not initialized') {
+                        console.log('索引器未初始化，请先部署代币合约');
+                    }
+                } else {
+                    showError('服务器连接失败');
+                }
+            } catch (error) {
+                console.error('无法连接到服务器:', error);
+            }
+        });
+    </script>
+</body>
+</html>

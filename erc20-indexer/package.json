@@ -1,0 +1,65 @@
+{
+  "name": "erc20-indexer",
+  "version": "1.0.0",
+  "description": "🔍 A comprehensive ERC20 token transfer indexer with real-time monitoring, modern web interface, and RESTful API",
+  "main": "backend/server.js",
+  "keywords": [
+    "ethereum",
+    "erc20",
+    "blockchain",
+    "indexer",
+    "web3",
+    "smart-contracts",
+    "hardhat",
+    "express",
+    "sqlite",
+    "real-time"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your-email@example.com",
+    "url": "https://github.com/your-username"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/erc20-indexer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/erc20-indexer/issues"
+  },
+  "homepage": "https://github.com/your-username/erc20-indexer#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
+  "scripts": {
+    "test": "npx hardhat test",
+    "test:coverage": "npx hardhat coverage",
+    "node": "npx hardhat node",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "npx hardhat run scripts/deploy.js --network sepolia",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "clean": "npx hardhat clean",
+    "compile": "npx hardhat compile",
+    "verify": "npx hardhat verify",
+    "size": "npx hardhat size-contracts",
+    "docs": "npx hardhat docgen"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6",
+    "ethers": "^5.7.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.1",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "nodemon": "^3.0.1"
+  }
+}
