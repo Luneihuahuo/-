@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIP2612 Permit DeFi Demo</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 EIP2612 Permit DeFi Demo</h1>
+    
+    <div class="container">
+        <h2>📱 连接钱包</h2>
+        <button id="connectWallet">连接 MetaMask</button>
+        <div id="walletStatus" class="status info" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>🏦 Token Bank - Permit 存款</h2>
+        <p>使用离线签名授权进行Token存款，无需预先approve！</p>
+        <input type="number" id="depositAmount" placeholder="存款数量" value="100">
+        <button id="permitDeposit">Permit 存款</button>
+        <div id="depositStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>🎨 NFT Market - Permit 购买</h2>
+        <p>使用白名单签名和Token permit购买NFT！</p>
+        <input type="number" id="tokenId" placeholder="NFT Token ID" value="1">
+        <input type="number" id="nftPrice" placeholder="NFT价格" value="100">
+        <button id="permitBuyNFT">Permit 购买 NFT</button>
+        <div id="buyStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>📊 账户信息</h2>
+        <button id="refreshBalance">刷新余额</button>
+        <div id="balanceInfo"></div>
+    </div>
+
+    <script>
+        // 合约地址 (需要替换为实际部署的地址)
+        const CONTRACT_ADDRESSES = {
+            token: '0x...', // MyToken合约地址
+            bank: '0x...', // TokenBank合约地址
+            nft: '0x...', // MyNFT合约地址
+            market: '0x...' // NFTMarket合约地址
+        };
+
+        // 合约ABI (简化版)
+        const TOKEN_ABI = [
+            'function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)',
+            'function balanceOf(address account) view returns (uint256)',
+            'function nonces(address owner) view returns (uint256)',
+            'function DOMAIN_SEPARATOR() view returns (bytes32)',
+            'function name() view returns (string)',
+            'function version() view returns (string)'
+        ];
+
+        const BANK_ABI = [
+            'function permitDeposit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)',
+            'function balances(address account) view returns (uint256)'
+        ];
+
+        const MARKET_ABI = [
+            'function permitBuy(uint256 tokenId, uint256 nonce, bytes calldata signature, uint256 tokenAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)',
+            'function getPermitHash(address buyer, uint256 tokenId, uint256 nonce) view returns (bytes32)'
+        ];
+
+        let provider, signer, userAddress;
+        let tokenContract, bankContract, marketContract;
+
+        // 连接钱包
+        document.getElementById('connectWallet').addEventListener('click', async () => {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    signer = provider.getSigner();
+                    userAddress = await signer.getAddress();
+                    
+                    // 初始化合约
+                    tokenContract = new ethers.Contract(CONTRACT_ADDRESSES.token, TOKEN_ABI, signer);
+                    bankContract = new ethers.Contract(CONTRACT_ADDRESSES.bank, BANK_ABI, signer);
+                    marketContract = new ethers.Contract(CONTRACT_ADDRESSES.market, MARKET_ABI, signer);
+                    
+                    showStatus('walletStatus', `✅ 钱包已连接: ${userAddress}`, 'success');
+                    refreshBalance();
+                } else {
+                    showStatus('walletStatus', '❌ 请安装 MetaMask', 'error');
+                }
+            } catch (error) {
+                showStatus('walletStatus', `❌ 连接失败: ${error.message}`, 'error');
+            }
+        });
+
+        // Permit存款
+        document.getElementById('permitDeposit').addEventListener('click', async () => {
+            try {
+                const amount = ethers.utils.parseEther(document.getElementById('depositAmount').value);
+                const deadline = Math.floor(Date.now() / 1000) + 3600; // 1小时后过期
+                
+                showStatus('depositStatus', '🔄 生成签名中...', 'info');
+                
+                // 生成permit签名
+                const { v, r, s } = await generatePermitSignature(
+                    tokenContract,
+                    userAddress,
+                    CONTRACT_ADDRESSES.bank,
+                    amount,
+                    deadline
+                );
+                
+                showStatus('depositStatus', '🔄 执行存款中...', 'info');
+                
+                // 执行permit存款
+                const tx = await bankContract.permitDeposit(amount, deadline, v, r, s);
+                await tx.wait();
+                
+                showStatus('depositStatus', '✅ 存款成功！', 'success');
+                refreshBalance();
+            } catch (error) {
+                showStatus('depositStatus', `❌ 存款失败: ${error.message}`, 'error');
+            }
+        });
+
+        // 生成Permit签名
+        async function generatePermitSignature(tokenContract, owner, spender, value, deadline) {
+            const nonce = await tokenContract.nonces(owner);
+            const name = await tokenContract.name();
+            const version = "1";
+            const chainId = await signer.getChainId();
+            
+            const domain = {
+                name: name,
+                version: version,
+                chainId: chainId,
+                verifyingContract: tokenContract.address
+            };
+            
+            const types = {
+                Permit: [
+                    { name: 'owner', type: 'address' },
+                    { name: 'spender', type: 'address' },
+                    { name: 'value', type: 'uint256' },
+                    { name: 'nonce', type: 'uint256' },
+                    { name: 'deadline', type: 'uint256' }
+                ]
+            };
+            
+            const values = {
+                owner: owner,
+                spender: spender,
+                value: value,
+                nonce: nonce,
+                deadline: deadline
+            };
+            
+            const signature = await signer._signTypedData(domain, types, values);
+            const sig = ethers.utils.splitSignature(signature);
+            
+            return {
+                v: sig.v,
+                r: sig.r,
+                s: sig.s
+            };
+        }
+
+        // 刷新余额
+        document.getElementById('refreshBalance').addEventListener('click', refreshBalance);
+        
+        async function refreshBalance() {
+            if (!userAddress) return;
+            
+            try {
+                const tokenBalance = await tokenContract.balanceOf(userAddress);
+                const bankBalance = await bankContract.balances(userAddress);
+                
+                document.getElementById('balanceInfo').innerHTML = `
+                    <p><strong>Token余额:</strong> ${ethers.utils.formatEther(tokenBalance)} MTK</p>
+                    <p><strong>银行存款:</strong> ${ethers.utils.formatEther(bankBalance)} MTK</p>
+                `;
+            } catch (error) {
+                console.error('刷新余额失败:', error);
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            element.style.display = 'block';
+        }
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', () => {
+            showStatus('walletStatus', '📝 请先部署合约并更新合约地址，然后连接钱包', 'info');
+        });
+    </script>
+</body>
+</html>
