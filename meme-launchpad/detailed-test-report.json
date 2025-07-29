@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-07-29T13:23:19.311Z",
+  "testSuite": "MemeFactory.t.sol",
+  "totalTests": 10,
+  "passedTests": 10,
+  "failedTests": 0,
+  "successRate": "100.0%",
+  "testResults": [
+    {
+      "name": "testDeployMeme",
+      "description": "测试Meme代币部署功能",
+      "result": "PASSED",
+      "stepCount": 5
+    },
+    {
+      "name": "testMintMeme",
+      "description": "测试代币铸造功能",
+      "result": "PASSED",
+      "stepCount": 5
+    },
+    {
+      "name": "testMultipleMints",
+      "description": "测试多次铸造",
+      "result": "PASSED",
+      "stepCount": 4
+    },
+    {
+      "name": "testFeeDistribution",
+      "description": "测试费用分配机制",
+      "result": "PASSED",
+      "stepCount": 5
+    },
+    {
+      "name": "testSupplyLimit",
+      "description": "测试供应量限制",
+      "result": "PASSED",
+      "stepCount": 5
+    },
+    {
+      "name": "testWithdrawPlatformFees",
+      "description": "测试平台费用提取",
+      "result": "PASSED",
+      "stepCount": 4
+    },
+    {
+      "name": "testInvalidDeployment",
+      "description": "测试无效部署参数",
+      "result": "PASSED",
+      "stepCount": 4
+    },
+    {
+      "name": "testInsufficientPayment",
+      "description": "测试支付金额不足",
+      "result": "PASSED",
+      "stepCount": 3
+    },
+    {
+      "name": "testExcessPaymentRefund",
+      "description": "测试超额支付退款",
+      "result": "PASSED",
+      "stepCount": 4
+    },
+    {
+      "name": "testFactoryStatistics",
+      "description": "测试工厂统计功能",
+      "result": "PASSED",
+      "stepCount": 4
+    }
+  ],
+  "gasOptimization": {
+    "traditionalDeployment": "~2,000,000 gas",
+    "minimalProxyDeployment": "~200,000 gas",
+    "gasSavings": "~90%"
+  },
+  "securityFeatures": [
+    "ReentrancyGuard protection",
+    "Ownable access control",
+    "Input validation",
+    "Supply limit enforcement",
+    "Overflow protection"
+  ],
+  "feeDistribution": {
+    "platformFee": "1%",
+    "creatorFee": "99%",
+    "automaticRefund": "Yes"
+  }
+}
